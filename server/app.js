@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./models');
+const {AllRouters}= require('./Router.js');
 const dotenv = require('dotenv')
 dotenv.config();
 const app = express();
@@ -10,6 +11,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(express.json())
 app.use(cors({origin:true}))
 
+app.use('/api',AllRouters)
 
 db.sequelize.sync().then(() => {
     app.listen(process.env.PORT, () => {
