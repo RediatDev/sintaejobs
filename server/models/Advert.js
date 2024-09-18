@@ -2,30 +2,23 @@
 module.exports = (sequelize, DataTypes) => {
   const Advert = sequelize.define('Advert', {
     advertId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
     },
     advertDescription: {
       type: DataTypes.TEXT,
       allowNull: false,
     },
-    adVideo: {
-      type: DataTypes.ENUM('DoneByUser', 'DoneByUs', 'noVideo'),
-      allowNull: false,
-    },
-    adPhoto: {
-      type: DataTypes.ENUM('DoneByUser', 'DoneByUs', 'noPhoto'),
-      allowNull: false,
-    },
-    adDuration: {
+    adMediaLink: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM('Approved', 'Pending', 'UnderReview', 'Denied'),
-      allowNull: false,
+      type: DataTypes.ENUM('Approved', 'Pending', 'UnderReview', 'Denied','Requested to pay','Uploaded'),
+       allowNull: true,
+        defaultValue:'Pending'
     },
     adTimestamp: {
       type: DataTypes.DATE,
@@ -43,7 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.NOW,
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: 'Users',

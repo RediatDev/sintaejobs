@@ -1,11 +1,10 @@
-
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
-      autoIncrement: true,
     },
     userName: {
       type: DataTypes.STRING,
@@ -14,12 +13,12 @@ module.exports = (sequelize, DataTypes) => {
         args: true,
         msg: "User Name Already Taken",
       },
-      is: {
-        args: /^[a-zA-Z0-9_!@#$%^&*()+=\-{}\[\]|\\:;"'<>,.?/~`]*$/,
-        msg: "User name should only contain alphabet, special characters",
-      },
       validate: {
         notEmpty: { msg: "User Name cannot be empty" },
+        is: {
+          args: /^[a-zA-Z0-9_!@#$%^&*()+=\-{}\[\]|\\:;"'<>,.?/~`]*$/,
+          msg: "User name should only contain alphabets and special characters",
+        },
       },
     },
     email: {
@@ -27,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       unique: {
         args: true,
-        msg: "Email Already Exist",
+        msg: "You can't create an account with this email",
       },
       validate: {
         notEmpty: { msg: "Email cannot be empty" },
@@ -50,9 +49,40 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     role: {
-      type: DataTypes.ENUM('admin', 'subadmin', 'user'),
-      defaultValue: "user",
+      type: DataTypes.ENUM("1", "2", "3", "4", "5"),
+      defaultValue: '5',
     },
+    sq1: {
+      type: DataTypes.ENUM(
+        "What was the name of the street you grew up on?",
+        "In what city did your parents meet?"
+      ),
+      allowNull: false,
+    },
+    sqa1: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: "Answer cannot be empty" },
+        isDateFormat(value) {
+          const alphaRegex = /^[a-zA-Z]+$/;
+          if (!alphaRegex.test(value)) {
+            throw new Error("Answer must contain only alphabetical characters");
+          }
+        }
+      }
+    },
+    passwordUpdateLink: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+    },
+    passwordUpdateLinkCreatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    passwordAttempt: {
+      type: DataTypes.STRING,
+    }
   }, {
     timestamps: true,
   });

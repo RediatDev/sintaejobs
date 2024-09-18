@@ -2,10 +2,9 @@
 module.exports = (sequelize, DataTypes) => {
   const Job = sequelize.define('Job', {
     jobId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      autoIncrement: true,
     },
     jobCategory: {
       type: DataTypes.STRING,
@@ -50,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.NOW,
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: 'Users',

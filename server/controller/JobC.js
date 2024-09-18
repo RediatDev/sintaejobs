@@ -1,8 +1,8 @@
-const { sequelize, Job } = require('../models');
+const { sequelize, Job ,JobBackup} = require('../models');
 let createJob = async (req,res)=>{
     const {jobCategory,jobDescription,jobSalary,jobLocation,jobType,jobAcceptance,jobDeadline,jobGender,userId} = req.body
     try {
-        const newJob = await Job.create({
+        await Job.create({
             jobCategory,
             jobDescription,
             jobSalary,
@@ -13,8 +13,21 @@ let createJob = async (req,res)=>{
             jobGender,
             userId,
         });
+        await JobBackup.create({
+            jobCategory,
+            jobDescription,
+            jobSalary,
+            jobLocation,
+            jobType,
+            jobAcceptance,
+            jobDeadline,
+            jobGender,
+            userId,
+        });
+     
 
-        res.status(201).json({ message: 'Job created successfully', newJob });
+
+        res.status(201).json({ message: 'Job created successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
