@@ -42,6 +42,10 @@ module.exports = (sequelize, DataTypes) => {
           key: 'userId',
         },
       },
+      mediaType:{
+        type : DataTypes.STRING,
+        allowNull: false,
+      },
     }, {
       timestamps: true,
       tableName: 'AdvertBackup',

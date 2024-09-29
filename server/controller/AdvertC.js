@@ -1,5 +1,5 @@
 // * Correction using chtGPT
-const { Advert, AdvertBackup } = require('../models');
+const { Advert, AdvertBackup,User } = require('../models');
 const {upload} =require('../fileHandler/fileValidator.js')
 
 //* Set ffmpeg path
@@ -9,7 +9,7 @@ const insertAdvert = async (req, res) => {
     const { advertDescription } = req.body;
     const { userId } = req.params;
     const adMediaLink = req.file ? req.file.path : null;  
-  
+
     try {
     
       if (req.fileValidationError) {
@@ -25,15 +25,17 @@ const insertAdvert = async (req, res) => {
         advertDescription,
         adMediaLink,
         userId,
+        mediaType:req.file.mimetype 
       });
   
       await AdvertBackup.create({
         advertDescription,
         adMediaLink,
         userId,
+        mediaType:req.file.mimetype 
       });
-  
-      res.status(201).json({ message: 'Advert created successfully' });
+
+      res.status(201).json({ message: 'Advert created successfully '});
     } catch (error) {
 
       res.status(500).json({ message: error.message });
@@ -87,12 +89,32 @@ let deleteAdvert = async (req,res)=>{
 
 //* get all uploaded media file
 let getAllMedia = async (req,res)=>{
-   
+  try {
+    const adverts = await Advert.findAll({
+        include: [{
+            model: User,
+            attributes: ['userId', 'userName', 'email'], 
+        }],
+        order: [['adTimestamp', 'DESC']], 
+    });
+    res.status(200).json({
+        success: true,
+        data: adverts,
+    });
+} catch (error) {
+    console.error('Error fetching media:', error);
+    res.status(500).json({
+        success: false,
+        message: 'Error fetching media',
+        error: error.message,
+    });
+}
 }
 
 //* admin review section for uploading 
 let adminReview = async (req,res)=>{
    
+
 
 }
 
