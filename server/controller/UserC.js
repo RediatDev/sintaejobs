@@ -26,14 +26,15 @@ const userC = async (req, res) => {
   try {
     // Check if the userName is already taken
     const existingUser = await User.findOne({ where: { userName } });
-    if (existingUser) {
-      return res.status(400).json({ errors: ["Username is already taken"] });
+    const existingGmail = await User.findOne({ where: { email } });
+    if (existingUser || existingGmail) {
+      return res.status(400).json({ errors: "User already signed up you can login"});
     }
 
     // Hash the password
     const salt = await bcrypt.genSalt(10);
-    const encryptionKey = crypto.randomBytes(32); // 32 bytes key for AES-256
-    const iv = crypto.randomBytes(16); // Initialization vector
+    const encryptionKey = crypto.randomBytes(32); 
+    const iv = crypto.randomBytes(16); 
     const hashPassword = await bcrypt.hash(password, salt);
     
     // Generate JWT
@@ -145,7 +146,7 @@ const userC = async (req, res) => {
     `,
     };
 
-    mailSender.sendMail(details, (err, info) => {
+     mailSender.sendMail(details, (err, info) => {
       if (err) {
         console.log('Error sending email:', err);
         return res.status(500).json({ message: 'Error sending email' });
@@ -160,255 +161,7 @@ const userC = async (req, res) => {
   }
 };
 
-
-
-
-// const userC = async (req, res) => {
-//   const { userName, email, password ,sq1,sqa1} = req.body;
-//   // Validation checks
-//   const errors = [];
-  
-//   // Check if any field is empty
-//   if (!userName || !email || !password || !sq1 || !sqa1) {
-//     errors.push("All fields are required" );
-//   }
-  
-//   // If there are validation errors, respond with the errors
-//   if (errors.length > 0) {
-//     return res.status(400).json({ errors });
-//   }
-  
-//   try {
-//     // Check if the userName is already taken
-//     const existingUser = await User.findOne({ where: { userName } });
-//     if (existingUser) {
-//       return res.status(400).json({ errors: ["Username is already taken"] });
-//     }
-    
-//     // Hash the password
-//     let salt = await bcrypt.genSalt(10);
-//     const encryptionKey = crypto.randomBytes(32); // 32 bytes key for AES-256
-//     const iv = crypto.randomBytes(16); // Initialization vector
-//     let hashPassword = await bcrypt.hash(password, salt);
-//     // Generate JWT 
-//     const tokenPayload = { userName, email, hashPassword, sq1, sqa1,iv,encryptionKey };
-//     const accessToken = jwt.sign(tokenPayload, process.env.SIGN_UP_SECRET, { expiresIn: '1d' });
-//     // Encrypt the JWT using crypto (AES encryption for example)
-//     const algorithm = 'aes-256-ctr';
-//     const cipher = crypto.createCipheriv(algorithm, encryptionKey, iv);
-//     let encryptedJWT = cipher.update(accessToken, 'utf8', 'hex');
-//     encryptedJWT += cipher.final('hex');
-//     // send a verification email 
-//     let baseURL = axiosInstance.defaults.baseURL
-    
-//     const base64EncodedJWT = encodeURIComponent(Buffer.from(encryptedJWT).toString('base64'));
-//     const base64EncodedKey = encodeURIComponent(Buffer.from(encryptionKey).toString('base64'))
-//     const base64EncodedIV = encodeURIComponent(Buffer.from(iv).toString('base64'))
-    
-//     const verificationLink = `${baseURL}/users/verify/${base64EncodedJWT}/${base64EncodedKey}/${base64EncodedIV}`;
-    
-//     const mailSender = nodemailer.createTransport({
-//       service: 'gmail',
-//       port: 465,
-//       auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS,
-//       },
-//     });
-
-//     const details = {
-//       from: process.env.EMAIL_USER,
-//       to: email,
-//       subject: 'ACCOUNT VERIFICATION !',
-//       html: `
-//         <!DOCTYPE html>
-//         <html lang="en">
-//         <head>
-//             <meta charset="UTF-8">
-//             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//             <title>Account Verification</title>
-//             <style>
-//                 body {
-//                     font-family: Arial, sans-serif;
-//                     background-color: #f6f6f6;
-//                     margin: 0;
-//                     padding: 0;
-//                 }
-//                 .container {
-//                     max-width: 600px;
-//                     margin: 0 auto;
-//                     background-color: #ffffff;
-//                     padding: 20px;
-//                     border-radius: 8px;
-//                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-//                     border: 1px solid #cccccc;
-//                 }
-//                 .header {
-//                     text-align: center;
-//                     padding: 10px 0;
-//                 }
-//                 .header img {
-//                     max-width: 100px;
-//                 }
-//                 .content {
-//                     text-align: center;
-//                     padding: 20px;
-//                 }
-//                 .cta-button {
-//                     display: inline-block;
-//                     padding: 15px 25px;
-//                     margin: 20px 0;
-//                     background-color: #FF8500;
-//                     color: #ffffff;
-//                     font-weight: bold;
-//                     text-decoration: none;
-//                     border-radius: 5px;
-//                 }
-//                 .footer {
-//                     text-align: center;
-//                     padding: 10px 0;
-//                     font-size: 12px;
-//                     color: #777777;
-//                 }
-//             </style>
-//         </head>
-//         <body>
-//             <div class="container">
-//                 <div class="header">
-//                     <svg width="100" height="100" xmlns="../assets/images/logo.jpg">
-//                         <rect width="100" height="100" fill="#007BFF"/>
-//                     </svg>
-//                     <h1>ASPIRE</h1>
-//                 </div>
-//                 <div class="content">
-//                     <h1>Account Verification</h1>
-//                     <p>Click the button below to verify your account.</p>
-//                     <a href="${verificationLink}" class="cta-button">Verify My Account</a>
-//             </div>
-//             <div class="footer">
-//                 <p>Link will expire in <b>1 day</b><p>
-//                 <br>
-//                 <p>If you did not sign up for this account, please ignore this email.</p>
-//             </div>
-//         </div>
-//         </body>
-//         </html>
-//       `
-//     };
-
-//     mailSender.sendMail(details, (err, info) => {
-//       if (err) {
-//         console.log('Error sending email:', err);
-//         return res.status(500).json({ message: 'Error sending email' });
-//       } else {
-//         console.log('Email sent:', info.response);
-//         return res.status(200).json({ message: 'Verification email sent!, please check your email for verifying your account'});
-//       }
-//     });
-//     // Create the user
-//             // const user = await User.create({
-//             //   userName,
-//             //   email,
-//             //   password: hashPassword,
-//             //   sqa1,
-//             //   sq1
-
-//             // });
-
-//     // Generate a token
-//           // let accessToken = jwt.sign(
-//           //   { user_id: user.userId, email: user.email, role: user.role },
-//           //   process.env.SECRET_KEY,
-//           //   { expiresIn: "1h" }
-//           // );
-
-// // refreshToken 
-//           // const refreshToken = jwt.sign(
-//           //   { user_id: user.userId, email: user.email, role: user.role },
-//           //   process.env.REFRESH_SECRET_KEY,
-//           //   { expiresIn: "7d" }
-//           // )
-// // send refresh token to database 
-//           // await RefreshToken.create({
-//           //   refreshToken:refreshToken, userId: user.userId
-//           // })
-//     // Set the token in the Authorization header and respond
-//     // res.setHeader('Authorization', `Bearer ${accessToken}`);
-//     // res.status(201).json({ message:'Verification email sent!, please check your email for verifying your account' });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
 //* verifyingEmail
-// const verifyEmail = async (req, res) => {
-//   const { encryptedJWT,encryptionKey,iv } = req.params; 
-//   const decodedJWT = Buffer.from(decodeURIComponent(encryptedJWT), 'base64').toString('utf-8');
-//   const decodedKey = Buffer.from(decodeURIComponent(encryptionKey), 'base64').toString('utf-8');
-//   const decodedIV = Buffer.from(decodeURIComponent(iv), 'base64').toString('utf-8');
- 
-//   //* ---------------------------------------------------------------
-//         const decryptJWT = (encryptedJWT, encryptionKey, iv) => {
-//           const decipher = crypto.createDecipheriv('aes-256-ctr', encryptionKey, iv);
-//           let decrypted = decipher.update(encryptedJWT, 'hex', 'utf8');
-//           decrypted += decipher.final('utf8');
-//           return decrypted;
-//         };
-//   //*------------------------------------------------------------------
-//   try {
-//     // Decrypt the JWT
-//     const decryptedJWT = decryptJWT(decodedJWT,decodedKey, decodedIV);
-
-//     // Verify the JWT
-//     jwt.verify(decryptedJWT, process.env.SIGN_UP_SECRET, async (err, decoded) => {
-//       if (err) {
-//         // Handle token expiration
-//         if (err.name === 'TokenExpiredError') {
-//           return res.status(400).json({ message: "Verification time span expired. Please request a new verification link." });
-//         }
-//         return res.status(400).json({ message: "Invalid verification." });
-//       }
-
-//       // Extract the user data from the JWT
-//       const { userName, email, hashPassword, sq1, sqa1 } = decoded;
-
-//       // Save the user to the database
-//       const newUser = await User.create({
-//         userName,
-//         email,
-//         password: hashPassword,
-//         sq1,
-//         sqa1,
-//       });
-      
-//  // Generate a token
-//           let accessToken = jwt.sign(
-//             { user_id: newUser.userId, email: newUser.email, role: newUser.role },
-//             process.env.SECRET_KEY,
-//             { expiresIn: "3h" }
-//           );
-
-// // refreshToken 
-//           // const refreshToken = jwt.sign(
-//           //   { user_id: user.userId, email: user.email, role: user.role },
-//           //   process.env.REFRESH_SECRET_KEY,
-//           //   { expiresIn: "7d" }
-//           // )
-// // send refresh token to database 
-//           // await RefreshToken.create({
-//           //   refreshToken:refreshToken, userId: user.userId
-//           // })
-
-// // Set the token in the Authorization header and respond
-//     res.setHeader('Authorization', `Bearer ${accessToken}`);
-//     res.status(201).json({ message:'user created successfully' });
-//     });
-
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
-// * login controller
 const verifyEmail = async (req, res) => {
   const { encryptedJWT, encryptionKey, iv } = req.params;
 
@@ -463,7 +216,7 @@ const verifyEmail = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
+// * login controller
 const loginC = async (req, res) => {
   const { email, password } = req.body;
 
@@ -704,7 +457,28 @@ let updateUserPassword = async (req, res) => {
   }
 };
 
+let grantPrivilege = async (req,res)=>{
+    const {userId} = req.params
+    const {Privilege} = req.body
+    try {
+      if(!userId || !Privilege){
+        return res.status(400).json({ errors: "All fields are required" });
+      }
+      const updateResult = await User.update(
+        { role: Privilege },
+        { where: { userId: userId } }
+      );
+      if (updateResult[0] > 0) {
+        return res.status(200).json({ message: `Privilege of ${Privilege} granted successfully` });
+      } else {
+        return res.status(500).json({ message: "Failed to grant privilege, Please try again later." });
+      }
+    } catch (error) {
+        console.log(error.message)
+    }
+
+}
 
 
 
-module.exports = { userC, loginC, deleteUser,forgotPassword,updateUserPassword,verifyEmail };
+module.exports = { userC, loginC, deleteUser,forgotPassword,updateUserPassword,verifyEmail,grantPrivilege };

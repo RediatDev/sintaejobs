@@ -6,7 +6,7 @@ const { checkRole,authenticateToken } = require('../Auth/Auth.js');
 let AdRouter = express.Router();
 
 AdRouter.post('/createAd/:userId', authenticateToken, checkRole(["1", "2", "5"]), upload.single('mediaFile'), insertAdvert);
-AdRouter.patch('/updateAd/:advertId', updateAdvert);
-AdRouter.delete('/deleteAd/:advertId', deleteAdvert);
+AdRouter.patch('/updateAd/:advertId',checkRole(["1"]), updateAdvert);
+AdRouter.delete('/deleteAd/:advertId',checkRole(["1"]), deleteAdvert);
 
 module.exports = {AdRouter};

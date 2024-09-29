@@ -205,7 +205,7 @@ const fileFilter = (req, file, cb) => {
 
 // Set file size limits
 const limits = {
-  fileSize: 20 * 1024 * 1024 // 20 MB limit for video files
+  fileSize: 20 * 1024 * 1024 // 20 MB limit for video files  1min and 47 seconds max
 };
 
 // Multer instance
