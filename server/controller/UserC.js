@@ -28,7 +28,7 @@ const userC = async (req, res) => {
     const existingUser = await User.findOne({ where: { userName } });
     const existingGmail = await User.findOne({ where: { email } });
     if (existingUser || existingGmail) {
-      return res.status(400).json({ errors: "User already signed up you can login"});
+      return res.status(400).json({ errors: "User name or email already in use"});
     }
 
     // Hash the password
@@ -125,7 +125,7 @@ const userC = async (req, res) => {
       <body>
           <div class="container">
               <div class="header">
-                  <svg width="100" height="100" xmlns="../assets/images/logo.jpg">
+                  <svg width="100" height="100" xmlns="../assets/images/aspire2.png">
                       <rect width="100" height="100" fill="#007BFF"/>
                   </svg>
                   <h1>ASPIRE</h1>
@@ -152,7 +152,7 @@ const userC = async (req, res) => {
         return res.status(500).json({ message: 'Error sending email' });
       }
       console.log('Email sent:', info.response);
-      return res.status(200).json({ message: 'Verification email sent! Please check your email.' });
+      return res.status(200).json({ message: 'Verification email sent! Please check your email check your inbox/spam folder in your email' });
     });
 
   } catch (err) {
@@ -376,7 +376,7 @@ const forgotPassword = async (req, res) => {
             <body>
                 <div class="container">
                     <div class="header">
-                        <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+                        <svg width="100" height="100" xmlns="../assets/images/aspire 2.png">
                             <rect width="100" height="100" fill="#007BFF"/>
                             <text x="50" y="60" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#ffffff" text-anchor="middle" alignment-baseline="middle">Sintae job's</text>
                         </svg>
