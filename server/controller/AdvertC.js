@@ -15,14 +15,14 @@ const insertAdvert = async (req, res) => {
 
   try {
     if (req.fileValidationError) {
-      return res.status(400).send(`Error: ${req.fileValidationError}`);
+      return res.status(400).json({ErrorMessage: req.fileValidationError});
     }
 
     //* Validate required fields
     if (!adMediaLink || !userId || !advertDescription) {
       return res
         .status(400)
-        .send("All fields including advert photo or video are required");
+        .json({ErrorMessage:"All fields including advert photo or video are required"});
     }
 
     const newAdvert = await Advert.create({
@@ -40,9 +40,35 @@ const insertAdvert = async (req, res) => {
       mediaType: req.file.mimetype,
     });
 
-    res.status(201).json({ message: "Advert created successfully " });
+    res.status(201).json({ message: "Advert created successfully will get back to you by email after reviewing your request. Thank you" });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+//* get all uploaded media file
+let getAllMedia = async (req, res) => {
+  try {
+    const adverts = await Advert.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ["userId", "userName", "email"],
+        },
+      ],
+      order: [["adTimestamp", "DESC"]],
+    });
+    res.status(200).json({
+      success: true,
+      data: adverts,
+    });
+  } catch (error) {
+    console.error("Error fetching media:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching media",
+      error: error.message,
+    });
   }
 };
 
@@ -372,38 +398,18 @@ let deleteAdvert = async (req, res) => {
 
     await advert.destroy();
 
-    res.json({ message: "Advert deleted successfully" });
+    //  deleting advert in backup 
+    const advertBackup = await AdvertBackup.findOne({ where: { advertId } });
+    if (! advertBackup) {
+      return res.status(404).json({ message: "Advert in backup not found" });
+    }
+    await advertBackup.destroy();
+
+    res.json({ message: "Advert deleted successfully " });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-//* get all uploaded media file
-let getAllMedia = async (req, res) => {
-  try {
-    const adverts = await Advert.findAll({
-      include: [
-        {
-          model: User,
-          attributes: ["userId", "userName", "email"],
-        },
-      ],
-      order: [["adTimestamp", "DESC"]],
-    });
-    res.status(200).json({
-      success: true,
-      data: adverts,
-    });
-  } catch (error) {
-    console.error("Error fetching media:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching media",
-      error: error.message,
-    });
-  }
-};
-
 
 //* clean up files in local storage when the files are not in database
 let cleanUpLocalStorage = async (req, res) => {
@@ -510,7 +516,7 @@ const sendMediaFile = async (req, res) => {
     }
 
     // Read the file asynchronously using fs.promises
-    const data = fs.readFile(filePath,(err,data)=>{
+    fs.readFile(filePath,(err,data)=>{
        if(err){
         return res.status(404).json('error while fetching the file please try again');
        }
