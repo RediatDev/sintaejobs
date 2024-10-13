@@ -492,34 +492,38 @@ const sendMediaFile = async (req, res) => {
   const { fileName } = req.params;
   const extensionOfFile = path.extname(fileName).slice(1).toLowerCase();
 
+  let filePath, contentType;
+
   try {
-      let filePath;
-      let contentType;
+    // Determine file path and content type based on file extension
+    switch (extensionOfFile) {
+      case 'png':
+        filePath = path.join('fileHandler/photoStore', fileName);
+        contentType = 'image/png';
+        break;
+      case 'mp4':
+        filePath = path.join('fileHandler/videoStore', fileName);
+        contentType = 'video/mp4';
+        break;
+      default:
+        return res.status(404).json({ error: 'Unsupported file type' });
+    }
 
-      if (extensionOfFile === 'png') {
-          filePath = path.join('fileHandler/photoStore', fileName);
-          contentType = 'image/png';
-         let data = fs.readFileSync(filePath)
-          res.setHeader('Content-Type',contentType);
-          res.status(200).send(data);
-      } else if (extensionOfFile === 'mp4') {
-          filePath = path.join('fileHandler/videoStore', fileName); 
-          contentType = 'video/mp4';
-          let data = fs.readFileSync(filePath)
-          res.setHeader('Content-Type',contentType);
-          res.status(200).send(data);
-      } else {
-          return res.status(404).send('File not found');
-      }
-
-      const data = await fs.readFile(filePath); 
-      res.setHeader('Content-Type', contentType);
-      res.status(200).send(data);
+    // Read the file asynchronously using fs.promises
+    const data = fs.readFile(filePath,(err,data)=>{
+       if(err){
+        return res.status(404).json('error while fetching the file please try again');
+       }
+       res.setHeader('Content-Type', contentType);
+       return res.status(200).send(data);
+    });
+    // Set headers and return the file
+    
   } catch (err) {
-      console.error(err); 
-      return res.status(404).send(`Error serving the request ${err.message}`);
+    return res.status(500).json({ error: `Error serving the request: ${err.message}` });
   }
 };
+
   
 module.exports = {
   deleteAdvert,
@@ -530,52 +534,5 @@ module.exports = {
   sendMediaFile,
   cleanUpLocalStorage,
 };
-
-
-//* github suggesion for cleanup 
-// If the dbMediaLinks sets for photos and videos are empty when you log them, it suggests that the logic inside the forEach loop isn't adding any media links to these sets. Here are some steps to troubleshoot the issue:
-
-// Check Advert Data: Make sure that the adverts array is actually populated with data. You can log the adverts right after fetching them:
-
-// javascript
-// Copy code
-// console.log("Fetched adverts:", adverts);
-// Verify Media Type Values: Ensure that the mediaType values in the fetched adverts are exactly 'photo' or 'video'. Log the mediaType of each advert:
-
-// javascript
-// Copy code
-// adverts.forEach(ad => {
-//   console.log(`Ad mediaType: ${ad.mediaType}, adMediaLink: ${ad.adMediaLink}`);
-// });
-// Check for Case Sensitivity: JavaScript is case-sensitive, so make sure that the media types are consistent (e.g., 'Photo' vs. 'photo'). You can use toLowerCase() to standardize:
-
-// javascript
-// Copy code
-// if (ad.mediaType.toLowerCase() === 'photo') {
-//   dbMediaLinks.photos.add(ad.adMediaLink);
-// } else if (ad.mediaType.toLowerCase() === 'video') {
-//   dbMediaLinks.videos.add(ad.adMediaLink);
-// }
-// Database Query: Ensure that the Advert.findAll() query is correctly fetching data. If there are no records in the database, the result will be empty.
-
-// Check for Errors in the Database Query: You might want to add error handling around the database fetch to see if there are any issues:
-
-// javascript
-// Copy code
-// const adverts = await Advert.findAll({
-//   attributes: ['adMediaLink', 'mediaType'],
-// }).catch(err => {
-//   console.error("Database fetch error:", err);
-// });
-// Final Log Before Cleanup: Make sure to log the content of dbMediaLinks right before the cleanup function is called to ensure you are seeing the latest state:
-
-// javascript
-// Copy code
-// console.log("Final dbMediaLinks:", {
-//   photos: Array.from(dbMediaLinks.photos),
-//   videos: Array.from(dbMediaLinks.videos),
-// });
-// After performing these checks, you should have a better idea of where the issue lies. If the arrays remain empty after all these checks, it might indicate that the data is not being populated correctly from the database.
-
 
 
