@@ -1,11 +1,16 @@
 module.exports = (sequelize, DataTypes) => {
     const AdvertBackup = sequelize.define('AdvertBackup', {
-      advertId: {
+      advertBackUpId: {
         type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
         allowNull: false,
         primaryKey: true,
       },
+      advertId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
+
       advertDescription: {
         type: DataTypes.TEXT,
         allowNull: false,
@@ -51,10 +56,12 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'AdvertBackup',
     });
   
-    AdvertBackup.associate = models => {
-      AdvertBackup.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' });
-    };
-  
+  // Associations
+  AdvertBackup.associate = models => {
+    AdvertBackup.belongsTo(models.User, { foreignKey: 'userId', onDelete: 'CASCADE' });  // Relationship with User
+    AdvertBackup.belongsTo(models.Advert, { foreignKey: 'advertId', onDelete: 'CASCADE' });  // Relationship with Advert
+  };
+
     return AdvertBackup;
   };
   

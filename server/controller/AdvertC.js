@@ -25,7 +25,7 @@ const insertAdvert = async (req, res) => {
         .send("All fields including advert photo or video are required");
     }
 
-    await Advert.create({
+    const newAdvert = await Advert.create({
       advertDescription,
       adMediaLink,
       userId,
@@ -33,6 +33,7 @@ const insertAdvert = async (req, res) => {
     });
 
     await AdvertBackup.create({
+      advertId: newAdvert.advertId, 
       advertDescription,
       adMediaLink,
       userId,
@@ -44,81 +45,7 @@ const insertAdvert = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// * ChatGPT assist end here
-let updateAdvert = async (req, res) => {
-  const { advertId } = req.params;
-  const updateFields = [
-    "advertDescription",
-    "status",
-    "adPhoto",
-    "adVideo",
-    "userId",
-  ];
-  try {
-    const advert = await Advert.findByPk(advertId);
 
-    if (!advert) {
-      return res.status(404).json({ message: "Advert not found" });
-    }
-
-    // Dynamically update only the provided fields
-    updateFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        advert[field] = req.body[field];
-      }
-    });
-
-    await advert.save();
-
-    res.json({ message: "Advert updated successfully", advert });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-//* Delete user
-let deleteAdvert = async (req, res) => {
-  const { advertId } = req.params;
-
-  try {
-    const advert = await Advert.findByPk(advertId);
-
-    if (!advert) {
-      return res.status(404).json({ message: "Advert not found" });
-    }
-
-    await advert.destroy();
-
-    res.json({ message: "Advert deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-//* get all uploaded media file
-let getAllMedia = async (req, res) => {
-  try {
-    const adverts = await Advert.findAll({
-      include: [
-        {
-          model: User,
-          attributes: ["userId", "userName", "email"],
-        },
-      ],
-      order: [["adTimestamp", "DESC"]],
-    });
-    res.status(200).json({
-      success: true,
-      data: adverts,
-    });
-  } catch (error) {
-    console.error("Error fetching media:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching media",
-      error: error.message,
-    });
-  }
-};
 
 //* admin review section for uploading
 let adminReview = async (req, res) => {
@@ -132,7 +59,7 @@ let adminReview = async (req, res) => {
         { status: updateStatus },
         { where: { advertId: advertId } }
       );
-       await Advert.update(
+       await AdvertBackup.update(
         { status: updateStatus },
         { where: { advertId: advertId } }
       );
@@ -368,99 +295,117 @@ let adminReview = async (req, res) => {
   }
 };
 
-// let cleanUpLocalStorage = async (req,res)=>{
-//   const adverts = await Advert.findAll({
-//     attributes: ['adMediaLink', 'mediaType'], raw: true 
-//   });
-//   try {   
-//     //  writing the result from db
-//     fs.writeFileSync('fileHandler/storage/temporaryStoreForDB.json', JSON.stringify(adverts, null, 2));
-//  //  writing the stored image name in local storage to json file
-//   const imageFilesName = fs.readdirSync('fileHandler/photoStore');
-//   fs.writeFileSync('fileHandler/storage/temporaryStoreForImage.json', JSON.stringify(imageFilesName, null, 2));
-//  //  writing the stored video name in local storage to json file
-//   const VideoFilesName = fs.readdirSync('fileHandler/videoStore');
-//   fs.writeFileSync('fileHandler/storage/temporaryStoreForVideo.json', JSON.stringify(VideoFilesName, null, 2));
+//* admin update advert
+let updateAdvert = async (req, res) => {
+  const { advertId } = req.params;
+  const adMediaLink = req.file ? req.file.path : null;  
+  const mediaType = req.file ? req.file.mimetype : null;
 
-//   //* cleaning images
-// const jsonFilePathDB = path.join('fileHandler','storage','temporaryStoreForDB.json')
-// const DBdata = fs.readFileSync(jsonFilePathDB)
-// let DBStoredData = JSON.parse(DBdata)
-// DBStoredData.map((singleDBInfo)=>{
-//   if(singleDBInfo.mediaType==='image/png'){
-//     const jsonFilePathToImage = path.join('fileHandler','storage','temporaryStoreForImage.json');
-//       let localDataOfImage = fs.readFileSync(jsonFilePathToImage)
-//       let parsedImages = JSON.parse(localDataOfImage)
-//          parsedImages.map((storedImageName)=>{
-//                     let baseNameOfFile = path.basename(singleDBInfo.adMediaLink)
-//               if(storedImageName === baseNameOfFile ){
-//                  console.log('file exist in database cant be deleted')
-//               }else{
-//                 const FilePathToImageToDelete = path.join('fileHandler','photoStore',baseNameOfFile);
-//                 fs.unlink(FilePathToImageToDelete, (err) => {
-//                                     if (err) {
-//                                         console.error(`Error deleting file ${FilePathToImageToDelete}:`, err);
-//                                     } else {
-//                                         console.log(`Deleted file : ${FilePathToImageToDelete}`);
-//                                     }
-//                                 });
-//               }
-//          })
-//   }
+  const updateFields = [
+    "advertDescription",
+    "status",
+    "userId"
+  ];
 
-// })
-//   //   const validPhotoFiles = new Set();
-//   //   const validVideoFiles = new Set();
+  try {
+    if (req.fileValidationError) {
+      return res.status(400).send(`Error: ${req.fileValidationError}`);
+    }
 
-//   //   adverts.forEach(ad => {
-//   //     const fileName = path.basename(ad.adMediaLink); // Get the file name from the link
-//   //     if (ad.mediaType === 'photo') {
-//   //         validPhotoFiles.add(fileName);
-//   //     } else if (ad.mediaType === 'video') {
-//   //         validVideoFiles.add(fileName);
-//   //     }
-//   // });
+    const advert = await Advert.findByPk(advertId);
+    if (!advert) {
+      return res.status(404).json({ message: "Advert not found" });
+    }
 
-//   //   // Function to clean up files in a given directory
-//   //   const deleteUnusedFilesInDir = (directoryPath, validFiles) => {
-//   //     fs.readdir(directoryPath, (err, files) => {
-//   //         if (err) {
-//   //             console.error(`Error reading directory ${directoryPath}:`, err);
-//   //             return;
-//   //         }
+ 
+    updateFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        advert[field] = req.body[field];
+      }
+    });
 
-          
-//   //         files.forEach(file => {
-//   //           const fileBaseName = path.basename(file); // Get the base name of the file from the local directory
-//   //           console.log("files base name" + fileBaseName)
-//   //           console.log("conditional statment : " + validFiles.has(fileBaseName))
-//   //           if (!validFiles.has(fileBaseName)) { // Correct comparison using base name
-//   //              console.log("file exist in database so it can't be deleted")
-//   //           }else{
-//   //             const filePath = path.join(directoryPath, file);
-//   //               fs.unlink(filePath, (err) => {
-//   //                   if (err) {
-//   //                       console.error(`Error deleting file ${filePath}:`, err);
-//   //                   } else {
-//   //                       console.log(`Deleted file: ${filePath}`);
-//   //                   }
-//   //               });
-//   //           }
-//   //       });
-//   //     });
-//   // };
 
-//   //   //* Step 3: Clean up photo and video files
-//   //   deleteUnusedFilesInDir('fileHandler/photoStore', validPhotoFiles);
-//   //   deleteUnusedFilesInDir('fileHandler/videoStore', validVideoFiles);
+    if (adMediaLink) {
+      advert.adMediaLink = adMediaLink;
+      advert.mediaType = mediaType;
+    }
 
-//   //   res.send('File cleanup process started');
-//   } catch (error) {
-//     console.error('Error during file cleanup:', error);
-//     res.status(500).send('Error during file cleanup');
-//   }
-// }
+  
+    await advert.save();
 
+    const advertBackup = await AdvertBackup.findOne({ where: { advertId } });
+    if (advertBackup) {
+
+      updateFields.forEach((field) => {
+        if (req.body[field] !== undefined) {
+          advertBackup[field] = req.body[field];
+        }
+      });
+
+   
+      if (adMediaLink) {
+        advertBackup.adMediaLink = adMediaLink;
+        advertBackup.mediaType = mediaType;
+      }
+
+   
+      await advertBackup.save();
+    }
+
+    res.json({ message: "Advert and its backup updated successfully", advert });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+//* Delete user
+let deleteAdvert = async (req, res) => {
+  const { advertId } = req.params;
+
+  try {
+    const advert = await Advert.findByPk(advertId);
+
+    if (!advert) {
+      return res.status(404).json({ message: "Advert not found" });
+    }
+
+    await advert.destroy();
+
+    res.json({ message: "Advert deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//* get all uploaded media file
+let getAllMedia = async (req, res) => {
+  try {
+    const adverts = await Advert.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ["userId", "userName", "email"],
+        },
+      ],
+      order: [["adTimestamp", "DESC"]],
+    });
+    res.status(200).json({
+      success: true,
+      data: adverts,
+    });
+  } catch (error) {
+    console.error("Error fetching media:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching media",
+      error: error.message,
+    });
+  }
+};
+
+
+//* clean up files in local storage when the files are not in database
 let cleanUpLocalStorage = async (req, res) => {
   const adverts = await Advert.findAll({
     attributes: ['adMediaLink', 'mediaType'], raw: true 
@@ -542,15 +487,48 @@ let cleanUpLocalStorage = async (req, res) => {
   }
 };
 
+//* media file sender to the front 
+const sendMediaFile = async (req, res) => {
+  const { fileName } = req.params;
+  const extensionOfFile = path.extname(fileName).slice(1).toLowerCase();
 
+  try {
+      let filePath;
+      let contentType;
 
+      if (extensionOfFile === 'png') {
+          filePath = path.join('fileHandler/photoStore', fileName);
+          contentType = 'image/png';
+         let data = fs.readFileSync(filePath)
+          res.setHeader('Content-Type',contentType);
+          res.status(200).send(data);
+      } else if (extensionOfFile === 'mp4') {
+          filePath = path.join('fileHandler/videoStore', fileName); 
+          contentType = 'video/mp4';
+          let data = fs.readFileSync(filePath)
+          res.setHeader('Content-Type',contentType);
+          res.status(200).send(data);
+      } else {
+          return res.status(404).send('File not found');
+      }
+
+      const data = await fs.readFile(filePath); 
+      res.setHeader('Content-Type', contentType);
+      res.status(200).send(data);
+  } catch (err) {
+      console.error(err); 
+      return res.status(404).send(`Error serving the request ${err.message}`);
+  }
+};
+  
 module.exports = {
   deleteAdvert,
   updateAdvert,
   insertAdvert,
   adminReview,
   getAllMedia,
-  cleanUpLocalStorage
+  sendMediaFile,
+  cleanUpLocalStorage,
 };
 
 

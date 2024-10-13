@@ -1,0 +1,39 @@
+https://lucid.app/lucidchart/4b053515-d44f-494c-8e55-28e06ce31444/edit?invitationId=inv_02d99e19-7168-4d99-9acb-9bda1741ab54
+
+check the delete  since its FK erro 
+multer handeler for advert , video and photo  // completed
+
+
+discussion with sintae
+-advert laye photo ena video yenurew waye huletume malet new
+-enesu be request bekule le ega lekew enargew weyese directly photo ena video endeye merchachew be limitation argene -upload yadergu 
+
+
+
+<!--  yekerew neger ke balefew -->
+role laye ke huala eyemeta yalew be set heder sehone ke ifte menekebelebeten menged figure out argo be postman test marege new
+
+<!-- role changing controller should be added -->
+<!-- if user is admin it cant be delited check the role first before deleting -->
+<!-- they can upload there promotion video or photo but confirmation should be done by admin -->
+
+advert period should be known and decided
+
+email should be changed to sintae's email
+add an email filter for not registering company email
+make logo image file a link and integrate in every email 
+if admin update status is denied only delete the advert with denied status not the backup one
+if paying request is taking more than 30 days delete the uploaded document and send to the uploader that it has been deleted and they can reupload again.
+dont accept company email
+
+- ande mastawekiya approve tedergo paid ketederege behuwala le mene yakel gezae mekoyete endalebete mewesene yasfelegale ena based on that , count argo timune delete marege yenorebatale
+- token expire data mecheresha laye crosscheck bederege malet time ena referesh token consider bederege
+
+
+
+roles setup 
+admin = 1
+sub-admin = 2 
+sub-sub-admin = 3
+waiting role = 4
+normal user = 5

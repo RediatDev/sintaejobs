@@ -1,5 +1,5 @@
 const express = require('express');
-const {updateAdvert,insertAdvert,deleteAdvert,getAllMedia,adminReview,cleanUpLocalStorage} = require('../controller/AdvertC.js'); 
+const {updateAdvert,insertAdvert,deleteAdvert,getAllMedia,adminReview,cleanUpLocalStorage,sendMediaFile} = require('../controller/AdvertC.js'); 
 const {upload}=require('../fileHandler/fileValidator.js')
 const { checkRole,authenticateToken } = require('../Auth/Auth.js');
 
@@ -11,5 +11,6 @@ AdRouter.delete('/deleteAd/:advertId',authenticateToken,checkRole(["1"]), delete
 AdRouter.get('/allUploadedAdverts',authenticateToken,checkRole(["1"]), getAllMedia);
 AdRouter.post('/adminMediaReview/:advertId/:userEmail',authenticateToken,checkRole(["1"]), adminReview);
 AdRouter.get('/adminMediaCleanUp',authenticateToken,checkRole(["1"]), cleanUpLocalStorage);
+AdRouter.get('/sendMediaToAdmin/:fileName',authenticateToken, sendMediaFile);
 
 module.exports = {AdRouter};
