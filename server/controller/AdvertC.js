@@ -50,7 +50,6 @@ let updateAdvert = async (req, res) => {
   const updateFields = [
     "advertDescription",
     "status",
-    "adDuration",
     "adPhoto",
     "adVideo",
     "userId",
@@ -369,66 +368,181 @@ let adminReview = async (req, res) => {
   }
 };
 
-let cleanUpLocalStorage = async (req,res)=>{
+// let cleanUpLocalStorage = async (req,res)=>{
+//   const adverts = await Advert.findAll({
+//     attributes: ['adMediaLink', 'mediaType'], raw: true 
+//   });
+//   try {   
+//     //  writing the result from db
+//     fs.writeFileSync('fileHandler/storage/temporaryStoreForDB.json', JSON.stringify(adverts, null, 2));
+//  //  writing the stored image name in local storage to json file
+//   const imageFilesName = fs.readdirSync('fileHandler/photoStore');
+//   fs.writeFileSync('fileHandler/storage/temporaryStoreForImage.json', JSON.stringify(imageFilesName, null, 2));
+//  //  writing the stored video name in local storage to json file
+//   const VideoFilesName = fs.readdirSync('fileHandler/videoStore');
+//   fs.writeFileSync('fileHandler/storage/temporaryStoreForVideo.json', JSON.stringify(VideoFilesName, null, 2));
+
+//   //* cleaning images
+// const jsonFilePathDB = path.join('fileHandler','storage','temporaryStoreForDB.json')
+// const DBdata = fs.readFileSync(jsonFilePathDB)
+// let DBStoredData = JSON.parse(DBdata)
+// DBStoredData.map((singleDBInfo)=>{
+//   if(singleDBInfo.mediaType==='image/png'){
+//     const jsonFilePathToImage = path.join('fileHandler','storage','temporaryStoreForImage.json');
+//       let localDataOfImage = fs.readFileSync(jsonFilePathToImage)
+//       let parsedImages = JSON.parse(localDataOfImage)
+//          parsedImages.map((storedImageName)=>{
+//                     let baseNameOfFile = path.basename(singleDBInfo.adMediaLink)
+//               if(storedImageName === baseNameOfFile ){
+//                  console.log('file exist in database cant be deleted')
+//               }else{
+//                 const FilePathToImageToDelete = path.join('fileHandler','photoStore',baseNameOfFile);
+//                 fs.unlink(FilePathToImageToDelete, (err) => {
+//                                     if (err) {
+//                                         console.error(`Error deleting file ${FilePathToImageToDelete}:`, err);
+//                                     } else {
+//                                         console.log(`Deleted file : ${FilePathToImageToDelete}`);
+//                                     }
+//                                 });
+//               }
+//          })
+//   }
+
+// })
+//   //   const validPhotoFiles = new Set();
+//   //   const validVideoFiles = new Set();
+
+//   //   adverts.forEach(ad => {
+//   //     const fileName = path.basename(ad.adMediaLink); // Get the file name from the link
+//   //     if (ad.mediaType === 'photo') {
+//   //         validPhotoFiles.add(fileName);
+//   //     } else if (ad.mediaType === 'video') {
+//   //         validVideoFiles.add(fileName);
+//   //     }
+//   // });
+
+//   //   // Function to clean up files in a given directory
+//   //   const deleteUnusedFilesInDir = (directoryPath, validFiles) => {
+//   //     fs.readdir(directoryPath, (err, files) => {
+//   //         if (err) {
+//   //             console.error(`Error reading directory ${directoryPath}:`, err);
+//   //             return;
+//   //         }
+
+          
+//   //         files.forEach(file => {
+//   //           const fileBaseName = path.basename(file); // Get the base name of the file from the local directory
+//   //           console.log("files base name" + fileBaseName)
+//   //           console.log("conditional statment : " + validFiles.has(fileBaseName))
+//   //           if (!validFiles.has(fileBaseName)) { // Correct comparison using base name
+//   //              console.log("file exist in database so it can't be deleted")
+//   //           }else{
+//   //             const filePath = path.join(directoryPath, file);
+//   //               fs.unlink(filePath, (err) => {
+//   //                   if (err) {
+//   //                       console.error(`Error deleting file ${filePath}:`, err);
+//   //                   } else {
+//   //                       console.log(`Deleted file: ${filePath}`);
+//   //                   }
+//   //               });
+//   //           }
+//   //       });
+//   //     });
+//   // };
+
+//   //   //* Step 3: Clean up photo and video files
+//   //   deleteUnusedFilesInDir('fileHandler/photoStore', validPhotoFiles);
+//   //   deleteUnusedFilesInDir('fileHandler/videoStore', validVideoFiles);
+
+//   //   res.send('File cleanup process started');
+//   } catch (error) {
+//     console.error('Error during file cleanup:', error);
+//     res.status(500).send('Error during file cleanup');
+//   }
+// }
+
+let cleanUpLocalStorage = async (req, res) => {
+  const adverts = await Advert.findAll({
+    attributes: ['adMediaLink', 'mediaType'], raw: true 
+  });
+
   try {
-    // Step 1: Fetch all adMediaLinks and their mediaTypes from the database
-    const adverts = await Advert.findAll({
-      attributes: ['adMediaLink', 'mediaType'],
-    });
-console.log("adverts " + adverts)
+    // Writing the result from DB to a JSON file
+    fs.writeFileSync('fileHandler/storage/temporaryStoreForDB.json', JSON.stringify(adverts, null, 2));
 
-    const dbMediaLinks = {
-      photos: new Set(),
-      videos: new Set(),
-    };
+    // Writing the stored image names in local storage to a JSON file
+    const imageFilesName = fs.readdirSync('fileHandler/photoStore');
+    fs.writeFileSync('fileHandler/storage/temporaryStoreForImage.json', JSON.stringify(imageFilesName, null, 2));
 
-    console.log("dbMediaLinks:", {
-      photos: Array.from(dbMediaLinks.photos),
-      videos: Array.from(dbMediaLinks.videos),
-    });
-    
-    adverts.forEach(ad => {
-      if (ad.mediaType === 'photo') {
-        dbMediaLinks.photos.add(ad.adMediaLink);
-      } else if (ad.mediaType === 'video') {
-        dbMediaLinks.videos.add(ad.adMediaLink);
+    // Writing the stored video names in local storage to a JSON file
+    const videoFilesName = fs.readdirSync('fileHandler/videoStore');
+    fs.writeFileSync('fileHandler/storage/temporaryStoreForVideo.json', JSON.stringify(videoFilesName, null, 2));
+
+    //* Cleaning up images
+    const jsonFilePathDB = path.join('fileHandler', 'storage', 'temporaryStoreForDB.json');
+    const DBdata = fs.readFileSync(jsonFilePathDB);
+    const DBStoredData = JSON.parse(DBdata);
+
+    // ** Image cleanup logic **
+    const jsonFilePathToImage = path.join('fileHandler', 'storage', 'temporaryStoreForImage.json');
+    const localDataOfImage = fs.readFileSync(jsonFilePathToImage);
+    const parsedImages = JSON.parse(localDataOfImage);
+
+    const validImageFiles = new Set(
+      DBStoredData
+        .filter((singleDBInfo) => singleDBInfo.mediaType === 'image/png')
+        .map((singleDBInfo) => path.basename(singleDBInfo.adMediaLink))
+    );
+
+    parsedImages.forEach((storedImageName) => {
+      if (!validImageFiles.has(storedImageName)) {
+        const FilePathToImageToDelete = path.join('fileHandler', 'photoStore', storedImageName);
+        fs.unlink(FilePathToImageToDelete, (err) => {
+          if (err) {
+            console.error(`Error deleting file ${FilePathToImageToDelete}:`, err);
+          } else {
+            console.log(`Deleted image file: ${FilePathToImageToDelete}`);
+          }
+        });
+      } else {
+        console.log(`Image file ${storedImageName} exists in the database, not deleting.`);
       }
     });
 
-    // Function to clean up files in a given directory
-    const cleanUpFiles = (dirPath, validLinks) => {
-      fs.readdir(dirPath, (err, files) => {
-        if (err) {
-          console.error(`Error reading files in ${dirPath}:`, err);
-          return;
-        }
+    //* Cleaning up videos
+    const jsonFilePathToVideo = path.join('fileHandler', 'storage', 'temporaryStoreForVideo.json');
+    const localDataOfVideo = fs.readFileSync(jsonFilePathToVideo);
+    const parsedVideos = JSON.parse(localDataOfVideo);
 
-        files.forEach(file => {
-          const filePath = path.join(dirPath, file);
+    const validVideoFiles = new Set(
+      DBStoredData
+        .filter((singleDBInfo) => singleDBInfo.mediaType === 'video/mp4')
+        .map((singleDBInfo) => path.basename(singleDBInfo.adMediaLink))
+    );
 
-          if (!validLinks.has(file)) {
-            fs.unlink(filePath, err => {
-              if (err) {
-                console.error(`Error deleting file ${file}:`, err);
-              } else {
-                console.log(`Deleted file: ${file}`);
-              }
-            });
+    parsedVideos.forEach((storedVideoName) => {
+      if (!validVideoFiles.has(storedVideoName)) {
+        const FilePathToVideoToDelete = path.join('fileHandler', 'videoStore', storedVideoName);
+        fs.unlink(FilePathToVideoToDelete, (err) => {
+          if (err) {
+            console.error(`Error deleting video file ${FilePathToVideoToDelete}:`, err);
+          } else {
+            console.log(`Deleted video file: ${FilePathToVideoToDelete}`);
           }
         });
-      });
-    };
+      } else {
+        console.log(`Video file ${storedVideoName} exists in the database, not deleting.`);
+      }
+    });
 
-    // Step 3: Clean up photo and video files
-    cleanUpFiles('../fileHandler/photoStore/', dbMediaLinks.photos);
-    cleanUpFiles('../fileHandler/videoStore/', dbMediaLinks.videos);
-
-    res.send('File cleanup process started');
+    res.send('File cleanup process completed');
   } catch (error) {
     console.error('Error during file cleanup:', error);
     res.status(500).send('Error during file cleanup');
   }
-}
+};
+
+
 
 module.exports = {
   deleteAdvert,
@@ -438,3 +552,52 @@ module.exports = {
   getAllMedia,
   cleanUpLocalStorage
 };
+
+
+//* github suggesion for cleanup 
+// If the dbMediaLinks sets for photos and videos are empty when you log them, it suggests that the logic inside the forEach loop isn't adding any media links to these sets. Here are some steps to troubleshoot the issue:
+
+// Check Advert Data: Make sure that the adverts array is actually populated with data. You can log the adverts right after fetching them:
+
+// javascript
+// Copy code
+// console.log("Fetched adverts:", adverts);
+// Verify Media Type Values: Ensure that the mediaType values in the fetched adverts are exactly 'photo' or 'video'. Log the mediaType of each advert:
+
+// javascript
+// Copy code
+// adverts.forEach(ad => {
+//   console.log(`Ad mediaType: ${ad.mediaType}, adMediaLink: ${ad.adMediaLink}`);
+// });
+// Check for Case Sensitivity: JavaScript is case-sensitive, so make sure that the media types are consistent (e.g., 'Photo' vs. 'photo'). You can use toLowerCase() to standardize:
+
+// javascript
+// Copy code
+// if (ad.mediaType.toLowerCase() === 'photo') {
+//   dbMediaLinks.photos.add(ad.adMediaLink);
+// } else if (ad.mediaType.toLowerCase() === 'video') {
+//   dbMediaLinks.videos.add(ad.adMediaLink);
+// }
+// Database Query: Ensure that the Advert.findAll() query is correctly fetching data. If there are no records in the database, the result will be empty.
+
+// Check for Errors in the Database Query: You might want to add error handling around the database fetch to see if there are any issues:
+
+// javascript
+// Copy code
+// const adverts = await Advert.findAll({
+//   attributes: ['adMediaLink', 'mediaType'],
+// }).catch(err => {
+//   console.error("Database fetch error:", err);
+// });
+// Final Log Before Cleanup: Make sure to log the content of dbMediaLinks right before the cleanup function is called to ensure you are seeing the latest state:
+
+// javascript
+// Copy code
+// console.log("Final dbMediaLinks:", {
+//   photos: Array.from(dbMediaLinks.photos),
+//   videos: Array.from(dbMediaLinks.videos),
+// });
+// After performing these checks, you should have a better idea of where the issue lies. If the arrays remain empty after all these checks, it might indicate that the data is not being populated correctly from the database.
+
+
+

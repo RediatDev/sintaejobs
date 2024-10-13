@@ -204,7 +204,7 @@ const verifyEmail = async (req, res) => {
       const accessToken = jwt.sign(
         { user_id: newUser.userId, email: newUser.email, role: newUser.role },
         process.env.SECRET_KEY,
-        { expiresIn: "3h" }
+        { expiresIn: "30d" }
       );
 
       res.setHeader('Authorization', `Bearer ${accessToken}`);
@@ -243,7 +243,7 @@ const loginC = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "30d" }
     );
   //  refresh token 
     // refreshToken 

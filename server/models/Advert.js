@@ -16,9 +16,9 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM('Approved', 'Pending', 'UnderReview', 'Denied','Requested to pay','Uploaded'),
+      type: DataTypes.ENUM('Approved', 'Pending', 'UnderReview', 'Denied','Requested_to_pay','Uploaded'),
        allowNull: true,
-        defaultValue:''
+        defaultValue:'UnderReview'
     },
     adTimestamp: {
       type: DataTypes.DATE,

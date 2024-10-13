@@ -38,7 +38,7 @@ cron.schedule('0 0 * * *', async () => {
     const deletedAdverts = await Advert.destroy({
       where: {
         status: {
-          [Op.or]: ['Requested to pay', 'Denied']
+          [Op.or]: ['Requested_to_pay', 'Denied']
         },
         updatedAt: {
           [Op.lt]: tenDaysAgo
@@ -52,7 +52,7 @@ cron.schedule('0 0 * * *', async () => {
     const deletedBackupAdverts = await AdvertBackup.destroy({
       where: {
         status: {
-          [Op.or]: ['Requested to pay', 'Denied']
+          [Op.or]: ['Requested_to_pay', 'Denied']
         },
         updatedAt: {
           [Op.lt]: tenDaysAgo
